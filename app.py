@@ -152,14 +152,14 @@ def overlay_text_on_image(image_path, shape_data, shape, font_path='arial.ttf'):
 # Display images
 def display_images(internal_id, shape, conn):
     # Display packing photo
-    packing_image_path = os.path.join("Packing", f"{internal_id}.png")
+    packing_image_path = os.path.join("C:/Users/hank.aungkyaw/PycharmProjects/Data Collecting for Dataframe/Packing", f"{internal_id}.jpeg")
     if os.path.exists(packing_image_path):
         st.image(packing_image_path, caption="Packing Photo", use_column_width=True)
     else:
         st.write("No Packing Photo available.")
 
     # Display product photo
-    product_image_path = os.path.join("Product", f"{internal_id}.png")
+    product_image_path = os.path.join("C:/Users/hank.aungkyaw/PycharmProjects/Data Collecting for Dataframe/Product", f"{internal_id}.jpeg")
     if os.path.exists(product_image_path):
         st.image(product_image_path, caption="Product Photo", use_column_width=True)
     else:

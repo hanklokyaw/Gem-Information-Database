@@ -3,6 +3,20 @@ import sqlite3
 from PIL import Image, ImageDraw, ImageFont
 import os
 
+SPECIFIC_SIZE_ORDER = ['1', '1.25', '1.5', '2', '2.5', '3', '3.5', '4',
+                       '5', '6', '6.5', '7', '7.5', '8', '9', '9.5',
+                       '10', '11', '12', '13', '14', '15', '17', '18',
+                       '19.5', '20', '21', '26', '28', '29', '1.5x3',
+                       '2x3', '2x4', '3x1.5', '3x4', '3x6', '4x2',
+                       '4x8', '5x5', '5x7', '5x8', '6x13', '6x8', '7x5']
+
+
+def sort_sizes(sizes):
+    size_order = {size: i for i, size in enumerate(SPECIFIC_SIZE_ORDER)}
+    return sorted(sizes, key=lambda x: size_order.get(x, float('inf')))
+
+
+
 # Use Bootstrap for styling
 st.markdown(
     """
@@ -34,7 +48,7 @@ def display_product_info(product):
     st.markdown(f"""
     <div class="card" style="margin: 20px 0;">
         <div class="card-body">
-            <h5 class="card-title">{description}</h5>
+            <h5 class="card-title">{sku}</h5>
             <table class="table" style="border-collapse: collapse; width: 100%;">
                 <tr style="border-bottom: 2px solid darkgrey;">
                     <th style="width: 30%; border: 2px solid darkgrey;">Internal ID</th>
@@ -47,6 +61,10 @@ def display_product_info(product):
                 <tr style="border-bottom: 2px solid darkgrey;">
                     <th style="width: 30%; border: 2px solid darkgrey;">Old SKU</th>
                     <td style="border: 2px solid darkgrey;">{old_sku}</td>
+                </tr>
+                <tr style="border-bottom: 2px solid darkgrey;">
+                    <th style="width: 30%; border: 2px solid darkgrey;">SKU</th>
+                    <td style="border: 2px solid darkgrey;">{description}</td>
                 </tr>
                 <tr style="border-bottom: 2px solid darkgrey;">
                     <th style="width: 30%; border: 2px solid darkgrey;">Vendor</th>
@@ -165,21 +183,21 @@ def display_images(internal_id, shape, conn):
     else:
         st.write("No Product Photo available.")
 
-    # Display shape-specific image with dynamic measurements
-    shape_image_path = os.path.join("shape", f"{shape.lower()}.jpg")
-    # st.write(f"Checking for image at: {shape_image_path}")  # Debug message
-    if os.path.exists(shape_image_path):
-        shape_data = get_shape_data(conn, shape, internal_id)
-        if shape_data:
-            overlayed_image = overlay_text_on_image(shape_image_path, shape_data, shape)
-            if overlayed_image:
-                st.image(overlayed_image, caption=f"{shape.capitalize()} Shape Measurements", use_column_width=True)
-            else:
-                st.write("Error generating shape image.")
-        else:
-            st.write(f"No shape data available for {shape}.")
-    else:
-        st.write(f"No base image available for {shape} shape.")
+    # # Display shape-specific image with dynamic measurements
+    # shape_image_path = os.path.join("shape", f"{shape.lower()}.jpg")
+    # # st.write(f"Checking for image at: {shape_image_path}")  # Debug message
+    # if os.path.exists(shape_image_path):
+    #     shape_data = get_shape_data(conn, shape, internal_id)
+    #     if shape_data:
+    #         overlayed_image = overlay_text_on_image(shape_image_path, shape_data, shape)
+    #         if overlayed_image:
+    #             st.image(overlayed_image, caption=f"{shape.capitalize()} Shape Measurements", use_column_width=True)
+    #         else:
+    #             st.write("Error generating shape image.")
+    #     else:
+    #         st.write(f"No shape data available for {shape}.")
+    # else:
+    #     st.write(f"No base image available for {shape} shape.")
 
 # Filter products based on user input
 # def filter_products(products, sku, type_, color, shape, size):
@@ -198,6 +216,58 @@ def display_images(internal_id, shape, conn):
 
 # Main function
 # Main function
+# def main():
+#     st.title("Gem Information Database")
+#
+#     conn = get_db_connection()  # Open database connection
+#     product_data = get_product_data(conn)
+#
+#     # User input for lookup
+#     st.sidebar.header("Search Product")
+#     sku = st.sidebar.text_input("Enter SKU (Leave empty if not applicable)")
+#
+#     # Apply SKU filter if provided
+#     if sku:
+#         filtered_products = [p for p in product_data if str(p[1]) == sku]
+#     else:
+#         filtered_products = product_data
+#
+#     # Available options for cascading filters based on filtered products
+#     types = sorted(set(str(p[8]) for p in filtered_products if p[8]))
+#     colors = sorted(set(str(p[9]) for p in filtered_products if p[9]))
+#     shapes = sorted(set(str(p[10]) for p in filtered_products if p[10]))
+#     sizes = sorted(set(str(p[11]) for p in filtered_products if p[11]))
+#
+#     # Sidebar filters
+#     type_ = st.sidebar.selectbox("Select Type", [""] + types)
+#     color = st.sidebar.selectbox("Select Color", [""] + colors)
+#     shape = st.sidebar.selectbox("Select Shape", [""] + shapes)
+#     size = st.sidebar.selectbox("Select Size", [""] + sizes)
+#
+#     # Apply remaining filters based on previous filter values
+#     if type_:
+#         filtered_products = [p for p in filtered_products if str(p[8]) == type_]
+#     if color:
+#         filtered_products = [p for p in filtered_products if str(p[9]) == color]
+#     if shape:
+#         filtered_products = [p for p in filtered_products if str(p[10]) == shape]
+#     if size:
+#         filtered_products = [p for p in filtered_products if str(p[11]) == size]
+#
+#     if filtered_products:
+#         selected_product_id = st.selectbox("Select Product by SKU", [str(p[0]) for p in filtered_products])
+#
+#         # Find and display the selected product's information
+#         for product in filtered_products:
+#             if str(product[0]) == selected_product_id:
+#                 display_product_info(product)
+#                 display_images(product[0], product[10], conn)  # Pass open connection here
+#                 break
+#     else:
+#         st.write("No products found matching the criteria.")
+#
+#     conn.close()  # Close database connection after operations
+
 def main():
     st.title("Gem Information Database")
 
@@ -218,7 +288,7 @@ def main():
     types = sorted(set(str(p[8]) for p in filtered_products if p[8]))
     colors = sorted(set(str(p[9]) for p in filtered_products if p[9]))
     shapes = sorted(set(str(p[10]) for p in filtered_products if p[10]))
-    sizes = sorted(set(str(p[11]) for p in filtered_products if p[11]))
+    sizes = sort_sizes(sorted(set(str(p[11]) for p in filtered_products if p[11])))
 
     # Sidebar filters
     type_ = st.sidebar.selectbox("Select Type", [""] + types)
@@ -245,10 +315,30 @@ def main():
                 display_product_info(product)
                 display_images(product[0], product[10], conn)  # Pass open connection here
                 break
+
+        # Create a form for submitting a photo
+        with st.form(key='photo_form'):
+            # File uploader for the photo
+            photo = st.file_uploader("Upload a photo", type=["jpeg", "jpg", "png"])
+            submit_button = st.form_submit_button(label='Submit Photo')
+
+            if submit_button:
+                if photo is not None:
+                    # Save the uploaded photo or perform any processing needed
+                    photo_path = os.path.join("C:/path/to/save", f"{selected_product_id}.jpeg")
+                    with open(photo_path, "wb") as f:
+                        f.write(photo.getbuffer())
+
+                    st.success(f"Photo submitted for SKU {selected_product_id}")
+                    st.experimental_rerun()  # Re-run the script to stay on the filtered page
+                else:
+                    st.error("Please upload a photo.")
+
     else:
         st.write("No products found matching the criteria.")
 
     conn.close()  # Close database connection after operations
+
 
 if __name__ == "__main__":
     main()
